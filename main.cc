@@ -7,6 +7,7 @@
 #include <utility>
 #include <cmath>
 #include <iostream>
+#include <functional>
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_color.h>
@@ -178,27 +179,39 @@ cleanup:
 
 class Entity {
 public:
-    virtual void draw(int frame) = 0;
+    typedef std::function<void(Entity &)> Callback;
 
     Entity(int frame)
     : created_at_(frame) {}
 
-    void collect() {
-        collect_ = true;
-    }
     bool collectable() {
         return collect_;
     }
-    virtual ~Entity() {};
 
+    void add_collect_callback(Callback cb) {
+        on_collect_cbs_.push_back(cb);
+    }
+
+    virtual void draw(int frame) = 0;
     virtual void update(int frame) {}
+    virtual void collect();
+    virtual ~Entity() {};
 
 protected:
     const int created_at_;
 
 private:
     bool collect_ = false;
+
+    std::vector<Callback> on_collect_cbs_;
 };
+
+void Entity::collect() {
+    for (auto &cb : on_collect_cbs_)
+        cb(*this);
+
+    collect_ = true;
+}
 
 class Asset {};
 
@@ -250,8 +263,13 @@ public:
         return sprite_.collides(e.sprite_);
     }
 
+    void add_collision_callback(Callback cb) {
+        on_collision_cbs_.push_back(cb);
+    }
+
     virtual void on_keypress(int keycode) {};
     virtual void on_collision(int frame, Collision c) {};
+    virtual void collect();
     virtual ~GameEntity() {}
 
 protected:
@@ -264,7 +282,16 @@ protected:
     Box worldbox_;
     EntityTracker &entities_;
     int collision_group_;
+
+    std::vector<Callback> on_collision_cbs_;
 };
+
+void GameEntity::collect() {
+    for (auto &cb : on_collision_cbs_)
+        cb(*this);
+
+    Entity::collect();
+}
 
 class Asteroid : public GameEntity {
 public:
@@ -472,16 +499,20 @@ public:
     typedef std::unique_ptr<VFXEntity> VFXEntityPtr;
     typedef std::unique_ptr<Entity> EntityPtr;
 
-    void add(GameEntityPtr p) {
+    GameEntity &add(GameEntityPtr p) {
         game_entities_.push_back(std::move(p));
+        return *game_entities_.back();
     }
 
-    void add(VFXEntityPtr p) {
+    VFXEntity &add(VFXEntityPtr p) {
         vfx_entities_.push_back(std::move(p));
+        return *vfx_entities_.back();
     }
 
     void draw(int frame);
     void update(int frame);
+    void clear_game_entities();
+
     void on_keypress(int keycode);
 
     int count() const;
@@ -495,6 +526,10 @@ private:
     std::deque<GameEntityPtr> game_entities_;
     std::deque<VFXEntityPtr> vfx_entities_;
 };
+
+void EntityTracker::clear_game_entities() {
+    game_entities_.clear();
+}
 
 int EntityTracker::count() const {
     return game_entities_.size() + vfx_entities_.size();
@@ -529,39 +564,130 @@ void EntityTracker::on_keypress(int keycode) {
 
 class Game {
 public:
+    enum State {
+        SETUP,
+        GAME,
+        OVER        
+    };
+
     Game(Box worldbox);
 
-    void draw(int frame);
-    void update(int frame);
+    void draw();
+    void update();
     void on_keypress(int keycode);
 
     const EntityTracker &entities() const {
         return entities_;
     }
 
+    int frame() const {
+        return frame_;
+    }
+
+    State state() const {
+        return state_;
+    }
+
 private:
-    void spawn_asteroids(int frame);
+    void spawn_asteroids();
+    void init_scene();
+    void spawn_ship();
+    void update_game_state();
+
+    void change_game_state(enum State new_state);
+    int frames_since_prev_state() const {
+        return frame_ - state_changed_at_;
+    }
 
     Box worldbox_;
     EntityTracker entities_;
+
+    enum State state_;
+    int state_changed_at_;
+    int frame_;
 };
 
-void Game::draw(int frame) {
-    entities_.draw(frame);
+void Game::change_game_state(enum State new_state) {
+    switch (new_state) {
+    case SETUP:
+        entities_.clear_game_entities();
+        break;
+    case GAME:
+        spawn_ship();
+        break;
+    case OVER:
+        break;
+    default:
+        break;
+    }
+
+    state_ = new_state;
+    state_changed_at_ = frame_;
 }
 
-void Game::update(int frame) {
-    spawn_asteroids(frame);
-    entities_.update(frame);
+void Game::spawn_ship() {
+    const float shipw = 100;
+    const float shiph = 100;
+    auto ship = std::make_unique<Ship>(
+        Box{
+            worldbox_.w / 2 - shipw / 2,
+            worldbox_.h - shiph,
+            shipw,
+            shiph},
+        worldbox_, entities_, 0, 2.4f
+    );
+    ship->add_collision_callback(
+        [this](Entity &) -> void {
+            change_game_state(OVER);
+        }
+    );
+
+    entities_.add(std::move(ship));
 }
 
-void Game::spawn_asteroids(int frame) {
-    if (!(frame % 50)) {
-        float r = M_PI / (rand() % 30 + 1);
+void Game::draw() {
+    entities_.draw(frame_);
+}
 
+void Game::update_game_state() {
+    switch (state_) {
+    case SETUP:
+        if (frames_since_prev_state() > 30)
+            change_game_state(GAME);
+        break;
+    case OVER:
+        if (frames_since_prev_state() > 300)
+            change_game_state(SETUP);
+        break;
+    case GAME:
+    default:
+        break;
+    }
+}
+
+void Game::update() {
+    if (state_ == GAME)
+        spawn_asteroids();
+
+    entities_.update(frame_);
+    update_game_state();
+
+    frame_++;
+}
+
+void Game::spawn_asteroids() {
+    if (!(frame_ % 50)) {
+        const float rotation = M_PI / (rand() % 30 + 1);
+        const float diameter = 100;
+        const float speed = .1f + (rand()%40) / 10.f;
         entities_.add(
             std::make_unique<Asteroid>(
-                Box{rand()%500, -100, 100, 100}, worldbox_, entities_, frame, r, .1f + (rand()%40) / 10.f
+                Box{
+                    rand() % (int)(worldbox_.w) - diameter,
+                    -diameter,
+                    diameter,
+                    diameter 
+                }, worldbox_, entities_, frame_, rotation, speed
             )
         );
     }
@@ -779,25 +905,9 @@ void Asteroid::update(int frame) {
 }
 
 Game::Game(Box worldbox)
-: worldbox_(worldbox) {
-    const float shipw = 100;
-    const float shiph = 100;
-    entities_.add(
-        std::make_unique<Ship>(
-            Box{
-                worldbox_.w / 2 - shipw / 2,
-                worldbox_.h - shiph,
-                shipw,
-                shiph},
-            worldbox_, entities_, 0, 2.4f
-        )
-    );
-
-    entities_.add(
-        std::make_unique<Background>(
-            worldbox_, 0
-        )
-    );
+: worldbox_(worldbox), frame_(0) {
+    init_scene();
+    change_game_state(SETUP);
 }
 
 void Asteroid::on_collision(int frame, Collision c) {
@@ -848,6 +958,14 @@ void Ship::on_collision(int frame, Collision c) {
         collect();
 }
 
+void Game::init_scene() {
+    entities_.add(
+        std::make_unique<Background>(
+            worldbox_, 0
+        )
+    );
+}
+
 main() {
     const int dw = 800;
     const int dh = 600;
@@ -875,7 +993,6 @@ main() {
     bool done = false;
     bool need_redraw = true;
     bool background = false;
-    int count = 0;
     while (!done) {
         const int w = al_get_display_width(display);
         const int h = al_get_display_height(display);
@@ -902,7 +1019,7 @@ main() {
            al_acknowledge_resize(event.display.source);
            break;
         case ALLEGRO_EVENT_TIMER:
-           game.update(count);
+           game.update();
            need_redraw = true;
            break;
         }
@@ -919,10 +1036,11 @@ main() {
             al_set_target_backbuffer(display);
             al_clear_to_color(al_map_rgb_f(0, 0, 0));
 
-            game.draw(count);
+            game.draw();
 
             al_set_target_backbuffer(display);
-            al_draw_textf(font, white, 0, 0, 0, "count: %d", count++);
+            int entities = game.entities().count();
+            al_draw_textf(font, white, 0, 0, 0, "frame: %d, entities: %d", game.frame(), entities);
             al_flip_display();
             need_redraw = false;
         }
