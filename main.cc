@@ -15,6 +15,7 @@
 #include <allegro5/allegro_opengl.h>
 
 #include "game.hh"
+#include "overlay.hh"
 
 #define FPS 60
 
@@ -38,11 +39,9 @@ main() {
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_timer_event_source(timer));
 
-    ALLEGRO_FONT *font = al_create_builtin_font();
-    ALLEGRO_COLOR white = al_map_rgb_f(1, 1, 1);
-
     al_start_timer(timer);
     Game game(Box{0, 0, dw, dh}, FPS);
+    Overlay overlay;
 
     bool done = false;
     bool need_redraw = true;
@@ -79,23 +78,20 @@ main() {
         }
 
         al_get_keyboard_state(&key_state);
-        if (al_key_down(&key_state, ALLEGRO_KEY_RIGHT))
-            game.on_keypress(ALLEGRO_KEY_RIGHT);
-        if (al_key_down(&key_state, ALLEGRO_KEY_LEFT))
-            game.on_keypress(ALLEGRO_KEY_LEFT);
-        if (al_key_down(&key_state, ALLEGRO_KEY_UP))
-            game.on_keypress(ALLEGRO_KEY_UP);
+        game.process_input(&key_state);
+        if (game.shutdown())
+            done = true;
 
         if (need_redraw) {
             al_set_target_backbuffer(display);
             al_clear_to_color(al_map_rgb_f(0, 0, 0));
 
             game.draw(display);
+            overlay.draw(display, game);
 
             al_set_target_backbuffer(display);
-            int entities = game.entities().count();
-            al_draw_textf(font, white, 0, 0, 0, "frame: %d, entities: %d", game.frame(), entities);
             al_flip_display();
+
             need_redraw = false;
         }
     }; 

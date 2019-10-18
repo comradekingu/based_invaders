@@ -21,7 +21,7 @@ private:
     static std::unique_ptr<Shader> shader_;
 
     float accel_;
-    int fire_cooldown_ = 10;
+    int fire_cooldown_ = 25;
 
     float horz_speed_ = 0;
     float next_frame_dv_ = 0;

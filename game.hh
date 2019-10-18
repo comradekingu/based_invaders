@@ -14,9 +14,10 @@ public:
 
     Game(Box worldbox, int fps);
 
+    void process_input(ALLEGRO_KEYBOARD_STATE *state);
+
     void draw(ALLEGRO_DISPLAY *display);
     void update();
-    void on_keypress(int keycode);
 
     const EntityTracker &entities() const {
         return entities_;
@@ -30,11 +31,25 @@ public:
         return state_;
     }
 
+    int score() const {
+        return score_;
+    }
+
+    float difficulty() const;
+
+    void reset();
+
+    bool shutdown() const {
+        return shut_me_down_;
+    }
+
 private:
     void spawn_asteroids();
     void init_scene();
     void spawn_ship();
     void update_game_state();
+
+    void on_keypress(int keycode);
 
     void change_game_state(enum State new_state);
     int frames_since_prev_state() const {
@@ -48,6 +63,9 @@ private:
     int state_changed_at_;
     int frame_;
     const int fps_;
+
+    int score_;
+    bool shut_me_down_;
 };
 
 #endif

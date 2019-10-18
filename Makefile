@@ -4,7 +4,7 @@
 CXX=g++
 LD=g++
 
-CXXFLAGS=-O2
+CXXFLAGS=-g -O2
 LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives
 
 SRCS=$(wildcard *.cc)

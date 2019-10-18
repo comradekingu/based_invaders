@@ -109,24 +109,26 @@ void Ship::update(int frame, int) {
 }
 
 void Ship::on_collision(int frame, Collision c) {
-        entities_.add(
-            std::make_unique<Explosion>(
-                frame,
-                50,
-                sprite_.x() + sprite_.w() / 2,
-                sprite_.y() + sprite_.h() / 2,
-                4800.f
-            )
-        );
-        entities_.add(
-            std::make_unique<Explosion>(
-                frame,
-                1000,
-                sprite_.x() + sprite_.w() / 2,
-                sprite_.y() + sprite_.h() / 2,
-                3600.f
-            )
-        );
+    entities_.add(
+        std::make_unique<Explosion>(
+            frame,
+            50,
+            sprite_.x() + sprite_.w() / 2,
+            sprite_.y() + sprite_.h() / 2,
+            4800.f
+        )
+    );
+    entities_.add(
+        std::make_unique<Explosion>(
+            frame,
+            500,
+            sprite_.x() + sprite_.w() / 2,
+            sprite_.y() + sprite_.h() / 2,
+            3600.f
+        )
+    );
 
-        collect();
+    collect();
+
+    GameEntity::on_collision(frame, c);
 }

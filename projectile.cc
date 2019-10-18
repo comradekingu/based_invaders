@@ -50,7 +50,7 @@ void Projectile::on_collision(int frame, Collision c) {
     entities_.add(
         std::make_unique<Explosion>(
             frame,
-            300,
+            200 + rand() % 100,
             c.x,
             c.y,
             200.f

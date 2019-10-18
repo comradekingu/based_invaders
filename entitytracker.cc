@@ -5,6 +5,15 @@ void EntityTracker::clear_game_entities() {
     game_entities_.clear();
 }
 
+void EntityTracker::clear_vfx_entities() {
+    vfx_entities_.clear();
+}
+
+void EntityTracker::clear() {
+    clear_game_entities();
+    clear_vfx_entities();
+}
+
 int EntityTracker::count() const {
     return game_entities_.size() + vfx_entities_.size();
 }

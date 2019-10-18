@@ -20,8 +20,7 @@ public:
     }
 
     virtual void on_keypress(int keycode) {};
-    virtual void on_collision(int frame, Collision c) {};
-    virtual void collect();
+    virtual void on_collision(int frame, Collision c);
     virtual ~GameEntity() {}
 
 protected:

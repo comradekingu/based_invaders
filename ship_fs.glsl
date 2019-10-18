@@ -26,8 +26,8 @@ void main()
     vec4 tc = sharp();
     vec4 shipcol = vec4(
         tc.r,
-        tc.g - cooldown(),
-        tc.b - cooldown(),
+        0,
+        0,
         tc.a
     );
     vec3 glow = (1.f - cooldown()) * vec3(.9f, .6f, .1f) * (0.5f - centerdist());

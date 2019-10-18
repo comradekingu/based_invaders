@@ -17,7 +17,7 @@ Asteroid::Asteroid(Box entbox, Box worldbox, EntityTracker &entities,
                 int created_at, float rotation, float downward_speed)
 : GameEntity(entbox, worldbox, entities, 1, created_at), pre_rotation_(entbox),
                           rotation_(rotation), downward_speed_(downward_speed),
-                                                     health_(rand() % 12 + 3) {
+                                                     health_(rand() % 6 + 3) {
     if (!shader_) {
         shader_ = std::make_unique<Shader>(
             "texture_vs.glsl",
@@ -111,4 +111,6 @@ void Asteroid::on_collision(int frame, Collision c) {
 
         collect();
     }
+
+    GameEntity::on_collision(frame, c);
 }

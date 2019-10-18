@@ -26,6 +26,8 @@ public:
     void draw(ALLEGRO_DISPLAY *display, int frame);
     void update(int frame, int fps);
     void clear_game_entities();
+    void clear_vfx_entities();
+    void clear();
 
     void on_keypress(int keycode);
 
