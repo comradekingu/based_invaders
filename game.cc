@@ -15,8 +15,6 @@ void Game::reset() {
 }
 
 void Game::change_game_state(enum State new_state) {
-    assert(state_ != new_state);
-
     switch (new_state) {
     case SETUP:
         entities_.clear_game_entities();
