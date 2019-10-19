@@ -1,3 +1,5 @@
+![](screenshot.jpg)
+
 # Configurable items (config.json)
 + window_width (pixels)
 + window_height (pixels)
