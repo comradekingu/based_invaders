@@ -10,7 +10,8 @@ class Sprite;
 class Asteroid : public GameEntity {
 public:
     Asteroid(Box entbox, Box worldbox, EntityTracker &entities,
-         int created_at, float rotation, float downward_speed);
+          int created_at, float rotation, float downward_speed,
+                                              float hitpoints);
     virtual ~Asteroid() {};
 
     virtual void update(int frame, int fps);
@@ -23,9 +24,9 @@ private:
     void gen_sprite();
 
     Sprite pre_rotation_;
-    float rotation_; // rad/s
+    float rotation_;
     float downward_speed_;
-    float health_;
+    float hitpoints_;
 };
 
 #endif

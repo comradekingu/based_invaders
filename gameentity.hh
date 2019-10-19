@@ -10,7 +10,7 @@ class GameEntity : public Entity {
 public:
     Collision collides(const GameEntity &e) {
         if (collision_group_ == e.collision_group_)
-            return Collision();
+            return Collision(); // nothing happened
 
         return sprite_.collides(e.sprite_);
     }

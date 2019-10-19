@@ -14,8 +14,12 @@
 std::unique_ptr<Shader> Ship::shader_;
 
 Ship::Ship(Box entbox, Box worldbox, EntityTracker &entities, int created_at,
-                                                                 float accel)
-: GameEntity(entbox, worldbox, entities, 2, created_at), accel_(accel) {
+                   float accel, int fire_cooldown, float projectile_velocity,
+                                               int projectile_hitpoint_range)
+: GameEntity(entbox, worldbox, entities, 2, created_at), accel_(accel),
+                                         fire_cooldown_(fire_cooldown),
+                             projectile_velocity_(projectile_velocity),
+                projectile_hitpoint_range_(projectile_hitpoint_range) {
     if (!shader_) {
         shader_ = std::make_unique<Shader>(
             "texture_vs.glsl",
@@ -96,10 +100,14 @@ void Ship::update(int frame, int) {
                 3,
                 5
             };
-
             entities_.add(
                 std::make_unique<Projectile>(
-                    prbox, worldbox_, entities_, frame, 12.f
+                    prbox,
+                    worldbox_,
+                    entities_,
+                    frame,
+                    projectile_velocity_,
+                    rand() % projectile_hitpoint_range_ + 1
                 )
             );
         }

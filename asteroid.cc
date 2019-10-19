@@ -14,10 +14,11 @@
 std::unique_ptr<Shader> Asteroid::shader_;
 
 Asteroid::Asteroid(Box entbox, Box worldbox, EntityTracker &entities,
-                int created_at, float rotation, float downward_speed)
+                int created_at, float rotation, float downward_speed,
+                                                     float hitpoints)
 : GameEntity(entbox, worldbox, entities, 1, created_at), pre_rotation_(entbox),
                           rotation_(rotation), downward_speed_(downward_speed),
-                                                     health_(rand() % 6 + 3) {
+                                                        hitpoints_(hitpoints) {
     if (!shader_) {
         shader_ = std::make_unique<Shader>(
             "texture_vs.glsl",
@@ -89,7 +90,7 @@ void Asteroid::update(int frame, int fps) {
 }
 
 void Asteroid::on_collision(int frame, Collision c) {
-    if (--health_ <= 0) {
+    if (--hitpoints_ <= 0) {
         entities_.add(
             std::make_unique<Explosion>(
                 frame,

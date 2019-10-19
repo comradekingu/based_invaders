@@ -1,9 +1,11 @@
 #include "game.hh"
+#include "config.hh"
 #include "box.hh"
 #include "ship.hh"
 #include "asteroid.hh"
 #include "background.hh"
 #include "entitytracker.hh"
+#include "phys.hh"
 #include <assert.h>
 #include <memory>
 #include <cmath>
@@ -34,15 +36,36 @@ void Game::change_game_state(enum State new_state) {
 }
 
 void Game::spawn_ship() {
-    const float shipw = 100;
-    const float shiph = 100;
+    const float shipw = 50;
+    const float shiph = 50;
+    const float accel = phys::pixels_per_frame_sq(
+        config_.ship_mass,
+        config_.ship_thrust,
+        fps_ 
+    );
+    const float fire_cooldown = phys::frame_period(
+        config_.ship_shooting_freq,
+        fps_
+    );
+    const float projectile_velocity = phys::pixels_per_frame(
+        config_.ship_bullet_velocity,
+        fps_ 
+    );
+
     auto ship = std::make_unique<Ship>(
         Box{
             worldbox_.w / 2 - shipw / 2,
             worldbox_.h - shiph,
             shipw,
-            shiph},
-        worldbox_, entities_, 0, 1.2f
+            shiph
+        },
+        worldbox_,
+        entities_,
+        0, // created at frame 0
+        accel,
+        (int)(fire_cooldown),
+        projectile_velocity,
+        config_.projectile_hitpoint_range
     );
     ship->add_collect_callback(
         [this](Entity &e) -> void {
@@ -82,22 +105,22 @@ void Game::update() {
     frame_++;
 }
 
-float Game::difficulty() const {
-    return fmin(score_ / 1000.f, 99.f) / 100.f;
-}
-
 void Game::spawn_asteroids() {
-    const int initial_spawn_delay = 60;
-    const int spawn_delay = initial_spawn_delay - (int)(difficulty()
-                                       * .8f * initial_spawn_delay);
-    if (frame_ % spawn_delay)
+    const float spawn_frequency = config_.asteroid_appearance_frequency +
+                         config_.asteroid_appearance_frequency_increase *
+                phys::frames_to_seconds(frames_since_prev_state(), fps_);
+    const int spawn_period = phys::frame_period(
+        spawn_frequency,
+        fps_
+    );
+    if (frame_ % spawn_period)
         return; 
 
     const float diameter = 100; 
-    const int speed_variance = 50 + difficulty() * 80;
-    const float speed = .4f + (rand() % speed_variance) / 10.f;
-    const int rotation_variance = 10;
-    const float rotation = (rand() % rotation_variance) / M_PI;
+    const float speed = phys::pixels_per_frame(config_.ship_forward_velocity,
+                                                                       fps_);
+    const int ang_vel_range = config_.asteroid_angular_velocity_range;
+    const float ang_vel = (rand() % (int)(ang_vel_range)) / M_PI;
 
     auto asteroid = std::make_unique<Asteroid>(
         Box{
@@ -105,7 +128,13 @@ void Game::spawn_asteroids() {
             -diameter,
             diameter,
             diameter 
-        }, worldbox_, entities_, frame_, rotation, speed
+        },
+        worldbox_,
+        entities_,
+        frame_,
+        ang_vel,
+        speed,
+        rand() % config_.asteroid_hitpoint_range
     );
     asteroid->add_collision_callback(
         [this](Entity &) -> void {
@@ -135,8 +164,9 @@ void Game::on_keypress(int keycode) {
     }
 }
 
-Game::Game(Box worldbox, int fps)
-: worldbox_(worldbox), frame_(0), fps_(fps), shut_me_down_(false) {
+Game::Game(Box worldbox, int fps, Config &config)
+: worldbox_(worldbox), frame_(0), fps_(fps), shut_me_down_(false),
+                                                 config_(config) {
     init_scene();
     reset();
 }

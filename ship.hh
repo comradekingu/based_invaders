@@ -10,7 +10,8 @@ class Sprite;
 class Ship : public GameEntity {
 public:
     Ship(Box shipbox, Box worldbox, EntityTracker &entities, int created_at,
-                                                               float accel);
+                  float accel, int fire_cooldown, float projectile_velocity,
+                                             int projectile_hitpoint_range);
 
     virtual void update(int frame, int fps);
     virtual void draw(int frame);
@@ -21,7 +22,9 @@ private:
     static std::unique_ptr<Shader> shader_;
 
     float accel_;
-    int fire_cooldown_ = 25;
+    int fire_cooldown_;
+    float projectile_velocity_;
+    int projectile_hitpoint_range_;
 
     float horz_speed_ = 0;
     float next_frame_dv_ = 0;

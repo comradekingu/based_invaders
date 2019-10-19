@@ -13,9 +13,9 @@
 std::unique_ptr<Shader> Projectile::shader_;
 
 Projectile::Projectile(Box entbox, Box worldbox, EntityTracker &entities,
-                                             int created_at, float speed)
+                            int created_at, float speed, float hitpoints)
 : GameEntity(entbox, worldbox, entities, 3, created_at), vert_speed_(speed),
-                                                  health_(rand() % 16 + 1) {
+                                                     hitpoints_(hitpoints) {
     if (!shader_) {
         shader_ = std::make_unique<Shader>(
             "texture_vs.glsl",
@@ -57,6 +57,6 @@ void Projectile::on_collision(int frame, Collision c) {
         )
     );
 
-    if (health_-- <= 0)
+    if (hitpoints_-- <= 0)
         collect();
 }

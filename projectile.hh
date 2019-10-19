@@ -9,7 +9,7 @@
 class Projectile : public GameEntity {
 public:
     Projectile(Box entbox, Box worldbox, EntityTracker &entities,
-                                    int created_at, float accel);
+                   int created_at, float accel, float hitpoints);
 
     virtual void update(int frame, int fps);
     virtual void draw(int frame);
@@ -19,7 +19,7 @@ private:
     static std::unique_ptr<Shader> shader_;
 
     float vert_speed_;
-    float health_;
+    float hitpoints_;
 };
 
 #endif

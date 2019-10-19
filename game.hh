@@ -2,6 +2,7 @@
 #define GAME_HH_
 #include "entitytracker.hh"
 #include "box.hh"
+#include "config.hh"
 #include <allegro5/allegro5.h>
 
 class Game {
@@ -12,7 +13,7 @@ public:
         OVER        
     };
 
-    Game(Box worldbox, int fps);
+    Game(Box worldbox, int fps, Config &config);
 
     void process_input(ALLEGRO_KEYBOARD_STATE *state);
 
@@ -34,8 +35,6 @@ public:
     int score() const {
         return score_;
     }
-
-    float difficulty() const;
 
     void reset();
 
@@ -66,6 +65,8 @@ private:
 
     int score_;
     bool shut_me_down_;
+
+    Config &config_;
 };
 
 #endif

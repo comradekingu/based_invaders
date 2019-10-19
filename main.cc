@@ -16,6 +16,7 @@
 
 #include "game.hh"
 #include "overlay.hh"
+#include "config.hh"
 
 #define FPS 60
 
@@ -40,7 +41,8 @@ main() {
     al_register_event_source(queue, al_get_timer_event_source(timer));
 
     al_start_timer(timer);
-    Game game(Box{0, 0, dw, dh}, FPS);
+    Config config("config.json");
+    Game game(Box{0, 0, dw, dh}, FPS, config);
     Overlay overlay;
 
     bool done = false;

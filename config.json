@@ -1,0 +1,12 @@
+{
+    "ship_shooting_freq": 5.0,
+    "ship_bullet_velocity": 800.0,
+    "ship_forward_velocity": 80.0,
+    "asteroid_angular_velocity_range": 6.28,
+    "ship_thrust": 240000.0,
+    "ship_mass": 10000.0,
+    "asteroid_appearance_frequency": 0.3,
+    "asteroid_appearance_frequency_increase": 0.01,
+    "asteroid_hitpoint_range": 12,
+    "projectile_hitpoint_range": 16
+}
