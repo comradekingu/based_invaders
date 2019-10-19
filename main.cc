@@ -13,10 +13,10 @@ main() {
     al_init_font_addon();
 
     al_set_new_display_flags(ALLEGRO_PROGRAMMABLE_PIPELINE | ALLEGRO_OPENGL);
-    ALLEGRO_DISPLAY *display = al_create_display(config.window_width,
-                                               config.window_height);
+    ALLEGRO_DISPLAY *display = al_create_display(config["window_width"],
+                                               config["window_height"]);
 
-    ALLEGRO_TIMER *timer = al_create_timer(1.f / config.fps);
+    ALLEGRO_TIMER *timer = al_create_timer(1.f / config["fps"]);
     ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_timer_event_source(timer));
@@ -26,8 +26,8 @@ main() {
         Box {
             0,
             0,
-            (float)(config.window_width),
-            (float)(config.window_height)
+            (float)(config["window_width"]),
+            (float)(config["window_height"])
         },
         config
     );

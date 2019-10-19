@@ -39,17 +39,17 @@ void Game::spawn_ship() {
     const float shipw = 50;
     const float shiph = 50;
     const float accel = phys::pixels_per_frame_sq(
-        config_.ship_mass,
-        config_.ship_thrust,
-        config_.fps
+        config_["ship_mass"],
+        config_["ship_thrust"],
+        config_["fps"]
     );
     const float fire_cooldown = phys::frame_period(
-        config_.ship_shooting_freq,
-        config_.fps
+        config_["ship_shooting_freq"],
+        config_["fps"]
     );
     const float projectile_velocity = phys::pixels_per_frame(
-        config_.ship_bullet_velocity,
-        config_.fps
+        config_["ship_bullet_velocity"],
+        config_["fps"]
     );
 
     auto ship = std::make_unique<Ship>(
@@ -65,7 +65,7 @@ void Game::spawn_ship() {
         accel,
         (int)(fire_cooldown),
         projectile_velocity,
-        config_.projectile_hitpoint_range
+        config_["projectile_hitpoint_range"]
     );
     ship->add_collect_callback(
         [this](Entity &e) -> void {
@@ -99,27 +99,27 @@ void Game::update() {
         score_++;
     }
 
-    entities_.update(frame_, config_.fps);
+    entities_.update(frame_, config_["fps"]);
     update_game_state();
     
     frame_++;
 }
 
 void Game::spawn_asteroids() {
-    const float spawn_frequency = config_.asteroid_appearance_frequency +
-                         config_.asteroid_appearance_frequency_increase *
-         phys::frames_to_seconds(frames_since_prev_state(), config_.fps);
+    const float spawn_frequency = config_["asteroid_appearance_frequency"] +
+                         config_["asteroid_appearance_frequency_increase"] *
+         phys::frames_to_seconds(frames_since_prev_state(), config_["fps"]);
     const int spawn_period = phys::frame_period(
         spawn_frequency,
-        config_.fps
+        config_["fps"]
     );
     if (frame_ % spawn_period)
         return; 
 
     const float diameter = 100; 
-    const float speed = phys::pixels_per_frame(config_.ship_forward_velocity,
-                                                                config_.fps);
-    const int ang_vel_range = config_.asteroid_angular_velocity_range;
+    const float speed = phys::pixels_per_frame(config_["ship_forward_velocity"],
+                                                                config_["fps"]);
+    const int ang_vel_range = config_["asteroid_angular_velocity_range"];
     const float ang_vel = (rand() % (int)(ang_vel_range)) / M_PI;
 
     auto asteroid = std::make_unique<Asteroid>(
@@ -134,7 +134,7 @@ void Game::spawn_asteroids() {
         frame_,
         ang_vel,
         speed,
-        rand() % config_.asteroid_hitpoint_range
+        rand() % (int)(config_["asteroid_hitpoint_range"])
     );
     asteroid->add_collision_callback(
         [this](Entity &) -> void {

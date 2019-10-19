@@ -5,7 +5,7 @@ CXX=g++
 LD=g++
 
 CXXFLAGS=-O2
-LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljsoncpp
+LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljson-c
 
 SRCS=$(wildcard *.cc)
 OBJS=$(patsubst %.cc, %.o, $(SRCS))

@@ -6,6 +6,6 @@ stdenv.mkDerivation rec {
     allegro5 
     glfw
     libGL
-    jsoncpp
+    json_c
   ];
 }

@@ -1,16 +1,21 @@
 #ifndef CONFIG_HH_
 #define CONFIG_HH_
-#include <json/json.h>
-#include <fstream>
+#include <json-c/json.h>
+#include <string>
+#include <unordered_map>
+#include <set>
 
 class Config {
 public:
     Config(const char *filename);
 
+    double operator[](const std::string &key) const;
+
     /*
      *  config items
      */
 
+    /*
     // pixels
     int window_width;
 
@@ -45,12 +50,17 @@ public:
 
     int asteroid_hitpoint_range;
     int projectile_hitpoint_range;
+    */
 
 private:
-    void fill_items();
+    void fill_items(std::string config);
+    void fill_defaults();
     void print_config();
 
-    Json::Value root_;
+    std::set<std::string> keys() const;
+
+    std::unordered_map<std::string, double> config_;
+    std::unordered_map<std::string, double> defaults_;
 };
 
 #endif

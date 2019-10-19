@@ -1,72 +1,80 @@
 #include "config.hh"
-#include <json/json.h>
+#include <assert.h>
+#include <json-c/json.h>
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <set>
 
 Config::Config(const char *filename) {
-    std::ifstream ifs;
-    ifs.open(filename);
+    std::ifstream ifs(filename);
+    std::stringstream contents;
+    contents << ifs.rdbuf();
 
-    Json::CharReaderBuilder builder;
-    JSONCPP_STRING errs;
-    if (!parseFromStream(builder, ifs, &root_, &errs)) {
-        std::cerr << "Couldn't read from config file." << std::endl;
-        exit(1);
-    }
-
-    fill_items();
+    fill_items(contents.str()); 
+    fill_defaults();
+    print_config();
 }
 
-void Config::fill_items() {
-    window_width = root_.get("window_width", 800).asInt();
-    window_height = root_.get("window_height", 600).asInt();
-    fps = root_.get("fps", 60).asInt();
-    ship_shooting_freq = root_.get("ship_shooting_freq", 5.f).asFloat();
-    ship_bullet_velocity = root_.get("ship_bullet_velocity", 800.f).asFloat();
-    ship_forward_velocity = root_.get("ship_forward_velocity", 80.f).asFloat();
-    asteroid_angular_velocity_range = root_.get(
-        "asteroid_angular_velocity_range", 6.28f).asFloat();
-    ship_thrust = root_.get("ship_thrust", 240000.f).asFloat();
-    ship_mass = root_.get("ship_mass", 10000.f).asFloat();
-    asteroid_appearance_frequency = root_.get(
-        "asteroid_appearance_frequency", .03f).asFloat();
-    asteroid_appearance_frequency_increase = root_.get(
-        "asteroid_appearance_frequency_increase", .01f).asFloat();
-    asteroid_hitpoint_range = root_.get("asteroid_hitpoint_range", 8).asInt();
-    projectile_hitpoint_range = root_.get("projectile_hitpoint_range",
-                                                          16).asInt();
+void Config::fill_defaults() {
+    defaults_["window_width"] = 800;
+    defaults_["window_height"] = 600;
+    defaults_["fps"] = 60;
+    defaults_["ship_shooting_freq"] = 5;
+    defaults_["ship_bullet_velocity"] = 800;
+    defaults_["ship_forward_velocity"] = 80;
+    defaults_["asteroid_angular_velocity_range"] = 6.28;
+    defaults_["ship_thrust"] = 240000;
+    defaults_["ship_mass"] = 10000;
+    defaults_["asteroid_appearance_frequency"] = .03;
+    defaults_["asteroid_hitpoint_range"] = 8;
+    defaults_["projectile_hitpoint_range"] = 16;
+}
+
+void Config::fill_items(std::string config) {
+    json_object *dict = json_tokener_parse(config.c_str());
+    assert(json_object_get_type(dict) == json_type_object);
+
+    json_object_object_foreach(dict, key, val) {
+        if (json_object_get_type(val) == json_type_int) {
+            config_[key] = json_object_get_int(val);
+        } else if (json_object_get_type(val) == json_type_double) {
+            config_[key] = json_object_get_double(val);
+        } else {
+            std::cerr << "Config: wrong value type for: " << key << std::endl;
+            exit(1);
+        }
+    }
+}
+
+std::set<std::string> Config::keys() const {
+    std::set<std::string> rkeys;
+    for (const auto &kv : config_)
+        rkeys.insert(kv.first);
+    for (const auto &kv : defaults_)
+        rkeys.insert(kv.first);
+    return rkeys;
 }
 
 void Config::print_config() {
-    std::cout << "screen_width = " << window_width << std::endl;
+    auto kset = keys();
+    for (const auto &key : kset)
+        std::cout << key << ": " << (*this)[key] << std::endl;
+}
 
-    std::cout << "screen_height = " << window_height << std::endl;
+double Config::operator[](const std::string &key) const {
+    auto it_config = config_.find(key);
+    if (it_config != config_.end())
+        return it_config->second;
 
-    std::cout << "fps = " << fps << std::endl;
+    auto it_default = defaults_.find(key);
+    if (it_default != config_.end())
+        return it_default->second;
 
-    std::cout << "ship_shooting_freq = " << ship_shooting_freq << std::endl;
-
-    std::cout << "ship_bullet_velocity = " << ship_bullet_velocity << std::endl;
-
-    std::cout << "ship_forward_velocity = " << ship_forward_velocity << std::endl;
-
-    std::cout << "asteroid_angular_velocity_range = "
-        << asteroid_angular_velocity_range << std::endl;
-
-    std::cout << "ship_thrust = " << ship_thrust << std::endl;
-
-    std::cout << "ship_mass = " << ship_mass << std::endl;
-
-    std::cout << "asteroid_appearance_frequency = "
-        << asteroid_appearance_frequency << std::endl;
-
-    std::cout << "asteroid_appearance_frequency_increase = "
-        << asteroid_appearance_frequency_increase << std::endl;
-
-    std::cout << "asteroid_hitpoint_range = " << asteroid_hitpoint_range
-                                                           << std::endl;
-
-    std::cout << "projectile_hitpoint_range = " << projectile_hitpoint_range
-                                                               << std::endl;
+    std::cerr << "No default value for: " << key << std::endl;
+    exit(1);
+    return .0;
 }
