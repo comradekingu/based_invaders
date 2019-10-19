@@ -1,0 +1,28 @@
+.PHONY: all clean
+.DEFAULT: all
+
+CXX=x86_64-w64-mingw32-g++.eze
+LD=$(CXX)
+
+INCLUDE=-I../allegro64/include
+LIB=-L../allegro64/LIB
+
+CXXFLAGS=-O2 -fexceptions
+LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljsoncpp \
+    -lglu32 -lgdi32 -lwinmm -lshlwapi -lole32 -lopengl32
+LDFLAGS=-static=libstdc++ -static-libgcc
+
+SRCS=$(wildcard *.cc)
+OBJS=$(patsubst %.cc, %.o, $(SRCS))
+
+all: game
+
+game: $(OBJS)
+	$(LD) $(OBJS) $(LIB) $(LDFLAGS) $(LDLIBS) -o $@
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $< -c -o $@
+
+clean:
+	rm -f $(OBJS)
+	rm -f game
