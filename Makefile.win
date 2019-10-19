@@ -1,16 +1,16 @@
 .PHONY: all clean
 .DEFAULT: all
 
-CXX=x86_64-w64-mingw32-g++.eze
+CXX=x86_64-w64-mingw32-g++.exe
 LD=$(CXX)
 
 INCLUDE=-I../allegro64/include
-LIB=-L../allegro64/LIB
+LIB=-L../allegro64/lib
 
 CXXFLAGS=-O2 -fexceptions
-LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljsoncpp \
-    -lglu32 -lgdi32 -lwinmm -lshlwapi -lole32 -lopengl32
-LDFLAGS=-static=libstdc++ -static-libgcc
+LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljson-c
+LDLIBS+=-lglu32 -lgdi32 -lwinmm -lshlwapi -lole32 -lopengl32
+LDFLAGS=
 
 SRCS=$(wildcard *.cc)
 OBJS=$(patsubst %.cc, %.o, $(SRCS))
