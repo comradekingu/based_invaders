@@ -8,7 +8,7 @@ INCLUDE=-I../allegro64/include
 LIB=-L../allegro64/lib
 
 CXXFLAGS=-O2 -fexceptions
-LDLIBS=-lallegro -lallegro_font -lallegro_image -lallegro_primitives -ljson-c
+LDLIBS=-lallegro_monolith-static -ljson-c
 LDLIBS+=-lglu32 -lgdi32 -lwinmm -lshlwapi -lole32 -lopengl32
 LDFLAGS=
 
