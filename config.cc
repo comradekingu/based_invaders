@@ -16,7 +16,6 @@ Config::Config(const char *filename) {
 
     fill_items(contents.str()); 
     fill_defaults();
-    print_config();
 }
 
 void Config::fill_defaults() {
