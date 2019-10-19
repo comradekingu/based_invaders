@@ -13,7 +13,7 @@ public:
         OVER        
     };
 
-    Game(Box worldbox, int fps, Config &config);
+    Game(Box worldbox, Config &config);
 
     void process_input(ALLEGRO_KEYBOARD_STATE *state);
 
@@ -61,7 +61,6 @@ private:
     enum State state_;
     int state_changed_at_;
     int frame_;
-    const int fps_;
 
     int score_;
     bool shut_me_down_;

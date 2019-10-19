@@ -1,67 +1,49 @@
-#include <assert.h>
 #include <stdlib.h>
-#include <deque>
-#include <vector>
-#include <memory>
-#include <atomic>
-#include <utility>
-#include <cmath>
-#include <iostream>
-#include <functional>
+#include <assert.h>
 #include <allegro5/allegro5.h>
-#include <allegro5/allegro_primitives.h>
-#include <allegro5/allegro_color.h>
-#include <allegro5/allegro_font.h>
-#include <allegro5/allegro_opengl.h>
-
 #include "game.hh"
 #include "overlay.hh"
 #include "config.hh"
 
-#define FPS 60
-
-ALLEGRO_DISPLAY *display = NULL;
-
 main() {
-    const int dw = 800;
-    const int dh = 600;
+    Config config("config.json");
 
     al_init();
-    al_set_config_value(al_get_system_config(), "trace", "level", "debug");
     al_install_keyboard();
     al_init_font_addon();
 
     al_set_new_display_flags(ALLEGRO_PROGRAMMABLE_PIPELINE | ALLEGRO_OPENGL);
-    display = al_create_display(dw, dh);
+    ALLEGRO_DISPLAY *display = al_create_display(config.window_width,
+                                               config.window_height);
 
-    ALLEGRO_KEYBOARD_STATE key_state;
-    ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);
+    ALLEGRO_TIMER *timer = al_create_timer(1.f / config.fps);
     ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_timer_event_source(timer));
 
     al_start_timer(timer);
-    Config config("config.json");
-    Game game(Box{0, 0, dw, dh}, FPS, config);
+    Game game(
+        Box {
+            0,
+            0,
+            (float)(config.window_width),
+            (float)(config.window_height)
+        },
+        config
+    );
     Overlay overlay;
 
     bool done = false;
     bool need_redraw = true;
     bool background = false;
+    ALLEGRO_KEYBOARD_STATE key_state;
     while (!done) {
-        const int w = al_get_display_width(display);
-        const int h = al_get_display_height(display);
-
         ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event);
         switch (event.type) {
-        case ALLEGRO_EVENT_KEY_DOWN:
-            break;
-
         case ALLEGRO_EVENT_DISPLAY_CLOSE:
            done = true;
            break;
-
         case ALLEGRO_EVENT_DISPLAY_HALT_DRAWING:
            background = true;
            al_acknowledge_drawing_halt(event.display.source);

@@ -11,6 +11,14 @@ public:
      *  config items
      */
 
+    // pixels
+    int window_width;
+
+    // pixels 
+    int window_height;
+
+    int fps;
+
     // shots/second
     float ship_shooting_freq;
 

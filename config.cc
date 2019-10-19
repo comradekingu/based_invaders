@@ -16,10 +16,12 @@ Config::Config(const char *filename) {
     }
 
     fill_items();
-    print_config();
 }
 
 void Config::fill_items() {
+    window_width = root_.get("window_width", 800).asInt();
+    window_height = root_.get("window_height", 600).asInt();
+    fps = root_.get("fps", 60).asInt();
     ship_shooting_freq = root_.get("ship_shooting_freq", 5.f).asFloat();
     ship_bullet_velocity = root_.get("ship_bullet_velocity", 800.f).asFloat();
     ship_forward_velocity = root_.get("ship_forward_velocity", 80.f).asFloat();
@@ -37,6 +39,12 @@ void Config::fill_items() {
 }
 
 void Config::print_config() {
+    std::cout << "screen_width = " << window_width << std::endl;
+
+    std::cout << "screen_height = " << window_height << std::endl;
+
+    std::cout << "fps = " << fps << std::endl;
+
     std::cout << "ship_shooting_freq = " << ship_shooting_freq << std::endl;
 
     std::cout << "ship_bullet_velocity = " << ship_bullet_velocity << std::endl;

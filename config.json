@@ -1,4 +1,7 @@
 {
+    "window_width": 800,
+    "window_height": 600,
+    "fps": 60,
     "ship_shooting_freq": 5.0,
     "ship_bullet_velocity": 800.0,
     "ship_forward_velocity": 80.0,
